@@ -1,0 +1,153 @@
+
+
+Passos:
+
+Obs: Antes de começar, certifique-se que está com Java JDK 1.7 instalado no computador e com as variáveis de ambiente corretamente configuradas.
+
+1. Fazer download de Pentaho PDI(Kettle) versão 5.0.1-stable no endereço: 
+https://sourceforge.net/projects/pentaho/files/Data%20Integration/5.0.1-stable/
+
+2. Extrair o arquivo compactado.
+
+3. Baixar libs JDBC MySQL e PostgreSQL
+- Download Postgres JDBC: https://jdbc.postgresql.org/download.html
+- Download MySQL JDBC: https://dev.mysql.com/downloads/connector/j/
+
+4. Baixar o banco de dados Sakila-db com o comando "wget http://downloads.mysql.com/docs/sakila-db.tar.gz" no terminal se estiver utilizando Linux, ou acessar o link se estiver utilizando Windows. O banco de dados também está disponível no repositório deste projeto de migração de dados.
+
+5. Importe o DB Sakila para o MySQL e crie a estrutura do BD.
+
+6. Crie o novo database no Postgres para qual iremos migrar os dados, recomendo utilizar a ferramenta PgAdmin. Segue detalhes do novo BD:
+> Name: customer_db
+> Table: customer_tb
+> Columns: 
+	> customer_id	(serial)
+	> full_name	(text)
+	> active	(boolean)
+	> email		(text)
+
+Obs: Não se esqueça de dar privilégios de escrita ao BD e a TB nas propriedades.
+
+7. Copiar as Libs JDBC e colar dentro do diretório "data-integration/lib"
+
+8. Executar o arquivo "spoon.sh" dentro do difetório home "data-itegration/" se tiver utilizando linux com o comando: "sh spoon.sh" ou se tiver utilizando Windows, então execute "spoon.bat".
+
+9. Após abrir o PDI, na aba superior do lado esquerdo da tela chamada "View" você encontrará uma opção chamada "Transformações", então em cima desta pasta dê um clique com botão direito do mouse e escolha a opção "Novo".
+
+10. No canto superior esquerdo da tela vá até a aba View > Transformações > Conexões > Botão direito > Novo e preencha com os dados:
+> Connection Name: Sakila_MySQL
+> Connection Type: MySQL
+> Host name: localhost ou IP do BD
+> Database name: sakila
+> Port number: 3306
+> User name: <user>
+> Password: <password>
+> Access: Native(JDBC)
+
+Utilize o botão Test para validar a conexão, se ocorrer erros, verifique os passos anteriores. Se ocorrer a mensagem Ok, clique em OK e siga com os demais passos a frente.
+
+Obs: Se desejar realizar futuras novas Transformações com essas conexões, basta clicar com botão direito do mouse > Share.
+
+11. Faça o mesmo procedimento(passo 10) acima para criar a conexão com o BD "customer_db" em Postgres, porém com os dados de sua conexão Postgres.
+
+12. Na aba "Design" localizada no canto esquerdo superior da tela há vários componentes disponíveis, então dentro da sub-categoria Input, selecione o componente Input Table e arraste-o para o quadro branco à direita. Este componente será o responsável pela consulta dos dados que queremos que está localizado no MySQL.
+
+13. Ao abrir o componente com um duplo clique, preencha as informações:
+> Nome do Step: Table input MySQL
+> Connection: Sakila_MySQL
+> SQL: SELECT customer_id, first_name, last_name, email, active FROM customer
+
+Clique no botão Preview e se tudo estiver configurado corretamente você escolherá o número de registros e abrirá uma nova janela com os dados da consulta.
+
+14. Agora vamos para etapa de validação dos dados, onde você criará seus alertas de erros para dados encontrados fora do padrão que você deseja.
+Então selecione o componente "Data Validator" localizado em Design > Validation. Arraste o componente ao lado do 1º step "input", passe o mouse em cima do componente e clique no ícone onde há um documento com uma seta verde apontando para a direita e ligue soltando a seta em cima do segundo componente, o Data Validator.
+
+15. No componente Data Validator crie novas validações para cada coluna do SELECT, por exemplo a validação de nome: Clicar no boão "New Validation" > preencher os dados da seguinte forma:
+> Validation description: first_name
+> Name of field to value: first_name
+> Error code: 01
+> Error description: Erro no campo first_name
+
+No Fieldset Type abaixo, marcar o checkBox "Verify data type" como true para que seja verificado o tipo de dado e abaixo selecionar o tipo de dado a verificar, no caso de nome é String.
+
+No fieldset Data abaixo, deixar marcada a opção "Null allowed", esta opção indica que a validação permitirá dados NULL nessa coluna que por padrão não é obrigatória, note que no campo email que é obrigatório ela deve estar desmarcada.
+
+Deixar desmarcada a opção de "Verify data type" para email.
+
+Obs: Em "Max string length" e "Min string length" ainda é possível definir em número inteiro o tamanho máximo/mínimo do campo, neste caso deixarei em branco.
+
+16. Utilize a mesma lógica do passo 15 para criar as validações das demais colunas, incrementando o "Error Code" em +1 para cada coluna.
+
+17. O próximo Step a ser inserido é o String Operations que tem a função de remover espaços do início/fim de um campo texto(Trim) e até caracteres especiais ou espaços do meio do texto. Após arrastar o componente para o espaço de trabalho(quadro branco), ligue de forma seguencial ao Data Validator como o seu próximo Stepe mude o seu Step Name para "Remove Espacos".
+
+Configure-o clicando no botão "Get Fiels", após o carregamento dos campos selecione a opção "both" para todas as linhas da coluna "Trim type", isso removerá espaços do início e fim dos campos.
+
+Para o campo "email", também selecione o valor de "lower" na coluna Lower/Upper para transformar os emails de maiúsculo para minúsculo e mude o value da coluna "Remove Special character" para space, isso fará com que elimine espaços no meio do texto do e-mail.
+
+18. Selecione o step "Table output" para realizarmos a escrita dos dados no destino e ligue-o de forma sequencial no step "Remove Espacos".
+Configure o Step de "Table output" com os seguintes dados:
+> Nome do Step: Table output Postgres
+> Connection: Customer_DB_Postgres
+> Target schema: public (Pode ser escolhido com botão navegar)
+> Target table: customer_tb (Pode ser escolhido com botão navegar)
+> Specify database fields (marcar esse checkBox como true)
+
+Na aba abaixo chamada "Database fiels" você pode selecionar manualmente os campos da coluna esquerda(destino) e os correspondentes da direita(Origem) ou ainda fazer o mapeamento automático(Não é 100% preciso) clicando no botão "Get fields" e em seguida botão "OK" para finalizar a configuração desse Step.
+
+Após esse mapeamento, você deve salvar a tranformação(Ctrl + S) e executá-la no botão (Play) verde na barra de botões localizada no canto superior esquerdo da tela.
+
+Se você configurou tudo corretamente e não houver nenhuma inconsistência, Pentaho Kettle exibirá uma nova aba chamada "Execution Results" com os dados:
+==================================================================================================================================================
+Nome do step	Copia nr	Lidos	escritos	Entrada	Saída	Atualizados	Rejected	Erros	Ativo	Tempo	Velocidade (r/s)	Pri/ent/sai
+Table input MySQL	0	0	599	599	0	0	0	0	Finished	0.0s	 13.022	-
+Data Validator	0	599	599	0	0	0	0	0	Finished	0.0s	 26.043	-
+Remove Espacos	0	599	599	0	0	0	0	0	Finished	0.0s	 13.022	-
+Table output Postgres	0	599	599	0	599	0	0	0	Finished	0.1s	 4.792	-
+==================================================================================================================================================
+
+Conclusão
+Logo foram migrados 599 registros de Sakila em MySQL para customer_db em Postgres em apenas 0.1s de tempo e sem necessitar de conhecimentos avançados em ambos DBMS.
+
+Se você concluiu com êxito, parabéns e até o próximo LAB.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
