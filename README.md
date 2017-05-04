@@ -20,12 +20,15 @@ Https://sourceforge.net/projects/pentaho/files/Data%20Integration/5.0.1-stable/
 
 6. Create the new database in Postgres to which we will migrate the data, I recommend using the PgAdmin tool. Here are details of the new DB:
 > Name: customer_db
+
 > Table: customer_tb
+
 > Columns:
-> Customer_id (serial)
-> Full_name (text)
-> Active (boolean)
-> Email (text)
+
+Customer_id (serial)
+Full_name (text)
+Active (boolean)
+Email (text)
 
 Note: Do not forget to give write privileges to DB and TB in properties.
 
@@ -37,12 +40,19 @@ Note: Do not forget to give write privileges to DB and TB in properties.
 
 10. In the upper left corner of the screen go to the View> Transformations> Connections> Right> New and fill in the data:
 > Connection Name: Sakila_MySQL
+
 > Connection Type: MySQL
+
 > Host name: localhost or BD IP
+
 > Database name: sakila
+
 > Port number: 3306
+
 > User name: <user>
+
 > Password: <password>
+
 > Access: Native (JDBC)
 
 Use the Test button to validate the connection, if errors occur, check the previous steps. If the message Ok appears, click OK and continue with the remaining steps.
@@ -55,7 +65,9 @@ Note: If you want to make future Transformations with these connections, just ri
 
 13. When opening the component with a double click, fill in the information:
 > Step name: Table input MySQL
+
 > Connection: Sakila_MySQL
+
 > SQL: SELECT customer_id, first_name, last_name, email, active FROM customer
 
 Click the Preview button and if everything is set correctly you will choose the number of records and will open a new window with the query data.
@@ -65,8 +77,11 @@ Then select the "Data Validator" component located under Design> Validation. Dra
 
 15. In the Data Validator component create new validations for each SELECT column, for example name validation: Click on the "New Validation" button> fill in the data as follows:
 > Validation description: first_name
+
 > Name of field to value: first_name
+
 > Error code: 01
+
 > Error description: Error in field first_name
 
 In the Fieldset Type below, set the checkBox "Verify data type" to true so that the data type is checked and below select the data type to check, in case name is String.
@@ -88,9 +103,13 @@ For the "email" field, also select the "lower" value in the Lower / Upper column
 18. Select step "Table output" to write the data to the destination and connect it sequentially in step "Remove spaces".
 Set the "Table output" step with the following data:
 > Step Name: Table output Postgres
+
 > Connection: Customer_DB_Postgres
+
 > Target schema: public (Can be chosen with browse button)
+
 > Target table: customer_tb (Can be chosen with browse button)
+
 > Specify database fields (mark this checkBox as true)
 
 In the tab below called "Database fiels" you can manually select the fields of the left column (destination) and the corresponding ones from the right (Source) or even do automatic mapping (Not 100% accurate) by clicking the "Get fields" button and Followed by the "OK" button to finish setting up this Step.
