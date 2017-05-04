@@ -23,12 +23,7 @@ Https://sourceforge.net/projects/pentaho/files/Data%20Integration/5.0.1-stable/
 
 > Table: customer_tb
 
-> Columns:
-
-Customer_id (serial)
-Full_name (text)
-Active (boolean)
-Email (text)
+> Columns: Customer_id (serial), Full_name (text), Active (boolean), Email (text).
 
 Note: Do not forget to give write privileges to DB and TB in properties.
 
@@ -49,19 +44,23 @@ Note: Do not forget to give write privileges to DB and TB in properties.
 
 > Port number: 3306
 
-> User name: <user>
+> User name: "your_user_db"
 
-> Password: <password>
+> Password: "your_password_db"
 
 > Access: Native (JDBC)
 
+![image_connection_mysql](https://cloud.githubusercontent.com/assets/7613528/25722410/81c8b952-30ea-11e7-9238-a70573ac474e.png)
+
 Use the Test button to validate the connection, if errors occur, check the previous steps. If the message Ok appears, click OK and continue with the remaining steps.
 
-Note: If you want to make future Transformations with these connections, just right click> Share.
+Note: If you want to make future Transformations with these connections, just right click > Share.
 
 11. Do the same procedure (step 10) above to create the connection with the DB "customer_db" in Postgres, but with the data of your Postgres connection.
 
 12. On the "Design" tab located in the upper left corner of the screen there are several components available, so within the Input subcategory, select the Input Table component and drag it to the whiteboard on the right. This component will be responsible for querying the data we want that is located in MySQL.
+
+![image_table_input](https://cloud.githubusercontent.com/assets/7613528/25722659/46b50568-30eb-11e7-8c78-2fc028df541a.png)
 
 13. When opening the component with a double click, fill in the information:
 > Step name: Table input MySQL
@@ -73,7 +72,7 @@ Note: If you want to make future Transformations with these connections, just ri
 Click the Preview button and if everything is set correctly you will choose the number of records and will open a new window with the query data.
 
 14. Now let's go to the data validation step, where you will create your error alerts for non-standard data that you want.
-Then select the "Data Validator" component located under Design> Validation. Drag the component next to the 1st step "input", hover the mouse over the component and click the icon where there is a document with a green arrow pointing to the right and connect by dropping the arrow on top of the second component, the Data Validator.
+Then select the "Data Validator" component located under Design > Validation. Drag the component next to the 1st step "input", hover the mouse over the component and click the icon where there is a document with a green arrow pointing to the right and connect by dropping the arrow on top of the second component, the Data Validator.
 
 15. In the Data Validator component create new validations for each SELECT column, for example name validation: Click on the "New Validation" button> fill in the data as follows:
 > Validation description: first_name
@@ -92,6 +91,9 @@ Leave unchecked the "Verify data type" option for email.
 
 Note: In "Max string length" and "Min string length" it is still possible to set the maximum / minimum size of the field in integer, in which case I will leave it blank.
 
+![image_data_validator](https://cloud.githubusercontent.com/assets/7613528/25722730/947af776-30eb-11e7-8cca-efaa72355d1e.png)
+
+
 16. Use the same logic as step 15 to create the validations of the other columns by incrementing the "Error Code" by +1 for each column.
 
 17. The next Step to insert is String Operations that has the function of removing spaces from the beginning / end of a text field (Trim) and up to special characters or spaces in the middle of the text. After dragging the component into the workspace (whiteboard), connect the Data Validator sequentially as your next Stepe change your Step Name to "Remove Spaces".
@@ -99,6 +101,9 @@ Note: In "Max string length" and "Min string length" it is still possible to set
 Configure it by clicking the "Get Faithful" button, after loading the fields select the "both" option for all the lines in the "Trim type" column, this will remove spaces from the beginning and end of the fields.
 
 For the "email" field, also select the "lower" value in the Lower / Upper column to transform emails from uppercase to lowercase and change the value of the column "Remove Special character" to space, this will cause it to eliminate spaces in the middle Of the e-mail text.
+
+![image_string_operaions_remove_spaces](https://cloud.githubusercontent.com/assets/7613528/25722887/2e146138-30ec-11e7-954c-b09d6d4ef0b7.png)
+
 
 18. Select step "Table output" to write the data to the destination and connect it sequentially in step "Remove spaces".
 Set the "Table output" step with the following data:
@@ -112,20 +117,31 @@ Set the "Table output" step with the following data:
 
 > Specify database fields (mark this checkBox as true)
 
+![table_output_main_options](https://cloud.githubusercontent.com/assets/7613528/25723532/c3220a12-30ee-11e7-8d6a-3cdb514b6eea.png)
+
 In the tab below called "Database fiels" you can manually select the fields of the left column (destination) and the corresponding ones from the right (Source) or even do automatic mapping (Not 100% accurate) by clicking the "Get fields" button and Followed by the "OK" button to finish setting up this Step.
+
+![table_output_database_fieds](https://cloud.githubusercontent.com/assets/7613528/25723573/f0b1d1ec-30ee-11e7-8eb9-0db405c37ded.png)
+
 
 After this mapping, you should save the transformation (Ctrl + S) and execute it on the green (Play) button in the button bar located in the upper left corner of the screen.
 
 If you have configured everything correctly and there is no inconsistency, Pentaho Kettle will display a new tab called "Execution Results" with the data:
-=================================================================================================================
-Step name Copy nr Written read Input Output Updated Rejected Errors Active Time Speed ​​(r / s) Pri / ent / exit
-Table input MySQL 0 0 599 599 0 0 0 0 Finished 0.0s 13,022 -
-Data Validator 0 599 599 0 0 0 0 0 Finished 0.0s 26,043 -
-Remove Spaces 0 599 599 0 0 0 0 0 Finished 0.0s 13.022 -
-Table output Postgres 0 599 599 0 599 0 0 0 Finished 0.1s 4,792 -
-=================================================================================================================
+
+> Step name Copy nr Written read Input Output Updated Rejected Errors Active Time Speed ​​(r / s) Pri / ent / exit
+> Table input MySQL 0 0 599 599 0 0 0 0 Finished 0.0s 13,022 -
+> Data Validator 0 599 599 0 0 0 0 0 Finished 0.0s 26,043 -
+> Remove Spaces 0 599 599 0 0 0 0 0 Finished 0.0s 13.022 -
+> Table output Postgres 0 599 599 0 599 0 0 0 Finished 0.1s 4,792 -
+
 
 Conclusion
 Soon, 599 records of Sakila in MySQL were migrated to customer_db in Postgres in just 0.1s of time and without the need for advanced knowledge in both DBMS.
 
+![transformacao_full_from_mysql_to_postgres](https://cloud.githubusercontent.com/assets/7613528/25722963/7420791e-30ec-11e7-871c-cab057504ee6.png)
+
 If you have successfully completed, congratulations and until the next LAB.
+
+![query_postgres](https://cloud.githubusercontent.com/assets/7613528/25723219/8a568af6-30ed-11e7-8675-a6299caa599b.png)
+
+
